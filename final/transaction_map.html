@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    
+        <script>
+            L_NO_TOUCH = false;
+            L_DISABLE_3D = false;
+        </script>
+    
+    <style>html, body {width: 100%;height: 100%;margin: 0;padding: 0;}</style>
+    <style>#map {position:absolute;top:0;bottom:0;right:0;left:0;}</style>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.js"></script>
+    <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.0/css/all.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/python-visualization/folium/folium/templates/leaflet.awesome.rotate.min.css"/>
+    
+            <meta name="viewport" content="width=device-width,
+                initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+            <style>
+                #map_d53187efbd16d9e60996ae61df1bf797 {
+                    position: relative;
+                    width: 100.0%;
+                    height: 100.0%;
+                    left: 0.0%;
+                    top: 0.0%;
+                }
+                .leaflet-container { font-size: 1rem; }
+            </style>
+        
+</head>
+<body>
+    
+    
+            <div class="folium-map" id="map_d53187efbd16d9e60996ae61df1bf797" ></div>
+        
+</body>
+<script>
+    
+    
+            var map_d53187efbd16d9e60996ae61df1bf797 = L.map(
+                "map_d53187efbd16d9e60996ae61df1bf797",
+                {
+                    center: [39.7805, -84.2003],
+                    crs: L.CRS.EPSG3857,
+                    zoom: 5,
+                    zoomControl: true,
+                    preferCanvas: false,
+                }
+            );
+
+            
+
+        
+    
+            var tile_layer_4b8f474546f19a973c31800e665113e9 = L.tileLayer(
+                "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                {"attribution": "Data by \u0026copy; \u003ca target=\"_blank\" href=\"http://openstreetmap.org\"\u003eOpenStreetMap\u003c/a\u003e, under \u003ca target=\"_blank\" href=\"http://www.openstreetmap.org/copyright\"\u003eODbL\u003c/a\u003e.", "detectRetina": false, "maxNativeZoom": 18, "maxZoom": 18, "minZoom": 0, "noWrap": false, "opacity": 1, "subdomains": "abc", "tms": false}
+            ).addTo(map_d53187efbd16d9e60996ae61df1bf797);
+        
+    
+            var marker_ef311bb62e652bbf747680a3ebbb8f37 = L.marker(
+                [39.7805, -84.2003],
+                {}
+            ).addTo(map_d53187efbd16d9e60996ae61df1bf797);
+        
+    
+            var icon_5fbe50d492ea81954512992ba5c2d99b = L.AwesomeMarkers.icon(
+                {"extraClasses": "fa-rotate-0", "icon": "info-sign", "iconColor": "white", "markerColor": "green", "prefix": "glyphicon"}
+            );
+            marker_ef311bb62e652bbf747680a3ebbb8f37.setIcon(icon_5fbe50d492ea81954512992ba5c2d99b);
+        
+    
+        var popup_f0ab91b8fb18e00e3c64694fdd0943ac = L.popup({"maxWidth": "100%"});
+
+        
+            
+                var html_fd81918f48940fcce6f1f5f113096aac = $(`<div id="html_fd81918f48940fcce6f1f5f113096aac" style="width: 100.0%; height: 100.0%;">Transaction 67 - Start</div>`)[0];
+                popup_f0ab91b8fb18e00e3c64694fdd0943ac.setContent(html_fd81918f48940fcce6f1f5f113096aac);
+            
+        
+
+        marker_ef311bb62e652bbf747680a3ebbb8f37.bindPopup(popup_f0ab91b8fb18e00e3c64694fdd0943ac)
+        ;
+
+        
+    
+    
+            var marker_12c588ffd50291357c273a21cbcb751a = L.marker(
+                [18.4387, -120.0212],
+                {}
+            ).addTo(map_d53187efbd16d9e60996ae61df1bf797);
+        
+    
+            var icon_48f310a0cf7921e039125f5767069e58 = L.AwesomeMarkers.icon(
+                {"extraClasses": "fa-rotate-0", "icon": "info-sign", "iconColor": "white", "markerColor": "red", "prefix": "glyphicon"}
+            );
+            marker_12c588ffd50291357c273a21cbcb751a.setIcon(icon_48f310a0cf7921e039125f5767069e58);
+        
+    
+        var popup_7b78686a92439e2de32bbc10942f5c45 = L.popup({"maxWidth": "100%"});
+
+        
+            
+                var html_646e4f692834eeb902daa60a210f4201 = $(`<div id="html_646e4f692834eeb902daa60a210f4201" style="width: 100.0%; height: 100.0%;">Transaction 67 - End</div>`)[0];
+                popup_7b78686a92439e2de32bbc10942f5c45.setContent(html_646e4f692834eeb902daa60a210f4201);
+            
+        
+
+        marker_12c588ffd50291357c273a21cbcb751a.bindPopup(popup_7b78686a92439e2de32bbc10942f5c45)
+        ;
+
+        
+    
+    
+            var poly_line_c858e46c80e1174e4bce5434d4ddf50d = L.polyline(
+                [[39.7805, -84.2003], [18.4387, -120.0212]],
+                {"bubblingMouseEvents": true, "color": "blue", "dashArray": null, "dashOffset": null, "fill": false, "fillColor": "blue", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "noClip": false, "opacity": 1, "smoothFactor": 1.0, "stroke": true, "weight": 2.5}
+            ).addTo(map_d53187efbd16d9e60996ae61df1bf797);
+        
+</script>
+</html>

@@ -1,0 +1,1412 @@
+MATCH path = (:User {id:15})-[:RECEIVED_FROM|SENT_TO*]-(other)
+RETURN path;
+
+MATCH path = (:User {id: 20})-[:RECEIVED_FROM|SENT_TO*]-(other)
+RETURN path;
+
+MATCH path = (:User {id: 39})-[:RECEIVED_FROM|SENT_TO*]-(other)
+RETURN path;
+
+MATCH ()-[:SENT_TO]->(transaction:Transaction)-[:RECEIVED_FROM]->()
+RETURN SUM(transaction.amount) AS TotalMoneyFlow;
+
+MATCH ()-[:SENT_TO]->(transaction:Transaction)-[:RECEIVED_FROM]->()
+RETURN transaction
+ORDER BY transaction.amount DESC
+LIMIT 1;
+
+MATCH (user:User)-[:RECEIVED_FROM]->(transaction:Transaction)
+RETURN user.id AS UserId, SUM(transaction.amount) AS TotalBalance
+ORDER BY TotalBalance DESC;
+
+MATCH (:User {id: 39})-[:RECEIVED_FROM|SENT_TO]->(transaction:Transaction)-[:SENT_TO|RECEIVED_FROM]->(otherUser)
+RETURN transaction, otherUser;
+
+MATCH (:User {id: 39})-[:RECEIVED_FROM]->(transaction:Transaction)-[:SENT_TO]->(otherUser)
+RETURN transaction, otherUser;
+
+MATCH (:User {id: 39})-[:RECEIVED_FROM]->(transaction:Transaction)-[:SENT_TO]->() RETURN transaction;
+
+MATCH ()-[:SENT_TO]->(transaction:Transaction)-[:RECEIVED_FROM]->() RETURN transaction;
+
+MATCH (n) RETURN n;
+
+// Additional relationships for user sending money to different accounts
+MATCH (sender:User {id: 1})
+WITH sender
+UNWIND [10, 20, 30] AS recipientId
+CREATE (sender)-[:SENT_TO]->(:Transaction {amount: toInteger(rand()*5000), timestamp: datetime({year: 2024, month: 1, day: 18, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})})-[:RECEIVED_FROM]->(:User {id: recipientId});
+
+// Additional relationships for different accounts sending money to one user
+MATCH (receiver:User {id: 39})
+UNWIND [50, 60, 70] AS senderId
+MERGE (sender:User {id: senderId})
+CREATE (sender)-[:SENT_TO]->(:Transaction {
+    amount: toInteger(rand()*3000),
+    timestamp: datetime({year: 2024, month: 1, day: 18, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})
+})-[:RECEIVED_FROM]->(receiver);
+
+// Additional relationships for high amounts coming to one account
+MATCH (receiver:User {id: 39})
+UNWIND [150000, 250000, 350000] AS amount
+MERGE (sender:User)-[:SENT_TO]->(:Transaction {
+    amount: amount,
+    timestamp: datetime({year: 2024, month: 1, day: 18, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})
+})-[:RECEIVED_FROM]->(receiver);
+
+// Additional relationships for high amounts getting distributed into small amounts
+MATCH (sender:User {id: 55})
+WITH sender
+UNWIND [400000, 500000, 600000] AS initialAmount
+WITH sender, initialAmount
+UNWIND [4, 5, 6] AS parts
+CREATE (sender)-[:SENT_TO]->(:Transaction {amount: toInteger(initialAmount/6), timestamp: datetime({year: 2024, month: 1, day: 18, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})})-[:RECEIVED_FROM]->(:User {id: toInteger(rand() % 100)});
+
+// Additional relationships for untimely (late night) transactions
+MATCH (sender:User)
+WITH sender
+UNWIND range(1, 2) AS times
+CREATE (sender)-[:SENT_TO]->(:Transaction {amount: toInteger(rand()*7000), timestamp: datetime({year: 2024, month: 1, day: 18, hour: toInteger(rand()*6) + 1, minute: toInteger(rand()*59), second: toInteger(rand()*59)})})-[:RECEIVED_FROM]->(:User {id: toInteger(rand() % 100)});
+
+// Additional relationships for user sending money to different accounts
+MATCH (sender:User {id: 1})
+WITH sender
+UNWIND [10, 20, 30] AS recipientId
+CREATE (sender)-[:SENT_TO]->(:Transaction {amount: toInteger(rand()*5000), timestamp: datetime({year: 2024, month: 1, day: 18, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})})-[:RECEIVED_FROM]->(:User {id: recipientId});
+
+// Additional relationships for different accounts sending money to one user
+MATCH (receiver:User {id: 39})
+UNWIND [50, 60, 70] AS senderId
+MERGE (sender:User {id: senderId})
+CREATE (sender)-[:SENT_TO]->(:Transaction {
+    amount: toInteger(rand()*3000),
+    timestamp: datetime({year: 2024, month: 1, day: 18, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})
+})-[:RECEIVED_FROM]->(receiver);
+
+// Additional relationships for high amounts coming to one account
+MATCH (receiver:User {id: 39})
+WITH receiver
+UNWIND [150000, 250000, 350000] AS amount
+CREATE (:User)-[:SENT_TO]->(:Transaction {amount: amount, timestamp: datetime({year: 2024, month: 1, day: 18, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})})-[:RECEIVED_FROM]->receiver;
+
+// Additional relationships for high amounts getting distributed into small amounts
+MATCH (sender:User {id: 55})
+WITH sender
+UNWIND [400000, 500000, 600000] AS initialAmount
+WITH sender, initialAmount
+UNWIND [4, 5, 6] AS parts
+CREATE (sender)-[:SENT_TO]->(:Transaction {amount: toInteger(initialAmount/6), timestamp: datetime({year: 2024, month: 1, day: 18, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})})-[:RECEIVED_FROM]->(:User {id: toInteger(rand() % 100)});
+
+// Additional relationships for untimely (late night) transactions
+MATCH (sender:User)
+WITH sender
+UNWIND range(1, 2) AS times
+CREATE (sender)-[:SENT_TO]->(:Transaction {amount: toInteger(rand()*7000), timestamp: datetime({year: 2024, month: 1, day: 18, hour: toInteger(rand()*6) + 1, minute: toInteger(rand()*59), second: toInteger(rand()*59)})})-[:RECEIVED_FROM]->(:User {id: toInteger(rand() % 100)});
+
+// Additional relationships for user sending money to different accounts
+MATCH (sender:User {id: 1})
+WITH sender
+UNWIND [10, 20, 30] AS recipientId
+CREATE (sender)-[:SENT_TO]->(:Transaction {amount: toInteger(rand()*5000), timestamp: datetime({year: 2024, month: 1, day: 18, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})})-[:RECEIVED_FROM]->(:User {id: recipientId});
+
+// Additional relationships for different accounts sending money to one user
+MATCH (receiver:User {id: 39})
+WITH receiver
+UNWIND [50, 60, 70] AS senderId
+CREATE (sender:User {id: senderId})-[:SENT_TO]->(:Transaction {amount: toInteger(rand()*3000), timestamp: datetime({year: 2024, month: 1, day: 18, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})})-[:RECEIVED_FROM]->receiver;
+
+// Additional relationships for high amounts coming to one account
+MATCH (receiver:User {id: 39})
+WITH receiver
+UNWIND [150000, 250000, 350000] AS amount
+CREATE (:User)-[:SENT_TO]->(:Transaction {amount: amount, timestamp: datetime({year: 2024, month: 1, day: 18, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})})-[:RECEIVED_FROM]->receiver;
+
+// Additional relationships for high amounts getting distributed into small amounts
+MATCH (sender:User {id: 55})
+WITH sender
+UNWIND [400000, 500000, 600000] AS initialAmount
+WITH sender, initialAmount
+UNWIND [4, 5, 6] AS parts
+CREATE (sender)-[:SENT_TO]->(:Transaction {amount: toInteger(initialAmount/6), timestamp: datetime({year: 2024, month: 1, day: 18, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})})-[:RECEIVED_FROM]->(:User {id: toInteger(rand() % 100)});
+
+// Additional relationships for untimely (late night) transactions
+MATCH (sender:User)
+WITH sender
+UNWIND range(1, 2) AS times
+CREATE (sender)-[:SENT_TO]->(:Transaction {amount: toInteger(rand()*7000), timestamp: datetime({year: 2024, month: 1, day: 18, hour: toInteger(rand()*6) + 1, minute: toInteger(rand()*59), second: toInteger(rand()*59)})})-[:RECEIVED_FROM]->(:User {id: toInteger(rand() % 100)});
+
+// Create users
+UNWIND range(1, 100) AS userId
+CREATE (:User {id: userId, name: 'User ' + userId});
+// Generate transactions for high amounts coming to one account
+MATCH (receiver:User {id: 39})
+WITH receiver
+UNWIND [100000, 200000, 300000] AS amount
+CREATE (sender:User)-[:SENT_TO]->(:Transaction {amount: amount, timestamp: datetime({year: 2024, month: 1, day: 17, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})})-[:RECEIVED_FROM]->(receiver);
+
+
+// Generate transactions for different accounts sending money to one user
+MATCH (receiver:User {id: 39})
+WITH receiver
+UNWIND [43, 58, 54, 29] AS senderId
+CREATE (sender:User {id: senderId})-[:SENT_TO]->(:Transaction {amount: toInteger(rand()*5000), timestamp: datetime({year: 2024, month: 1, day: 17, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})})-[:RECEIVED_FROM]->(receiver);
+
+// Generate transactions for high amounts coming to one account
+MATCH (receiver:User {id: 39})
+WITH receiver
+UNWIND [100000, 200000, 300000] AS amount
+CREATE (sender:User)-[:SENT_TO]->(:Transaction {amount: amount, timestamp: datetime({year: 2024, month: 1, day: 17, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})})-[:RECEIVED_FROM]->(receiver);
+
+// Generate transactions for high amounts getting distributed into small amounts
+MATCH (sender:User {id: 55})
+WITH sender
+UNWIND [100000, 200000, 300000] AS initialAmount
+WITH sender, initialAmount
+UNWIND [1, 2, 3] AS parts
+CREATE (sender)-[:SENT_TO]->(:Transaction {amount: toInteger(initialAmount/3), timestamp: datetime({year: 2024, month: 1, day: 17, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})})-[:RECEIVED_FROM]->(:User {id: toInteger(rand() % 100)});
+
+// Generate transactions for untimely (late night) transactions
+MATCH (sender:User)
+WITH sender
+UNWIND range(1, 3) AS times
+CREATE (sender)-[:SENT_TO]->(:Transaction {amount: toInteger(rand()*5000), timestamp: datetime({year: 2024, month: 1, day: 17, hour: toInteger(rand()*6) + 1, minute: toInteger(rand()*59), second: toInteger(rand()*59)})})-[:RECEIVED_FROM]->(:User {id: toInteger(rand() % 100)});
+
+MATCH (n)
+DETACH DELETE n;
+
+// Create users
+UNWIND range(1, 100) AS userId
+CREATE (:User {id: userId, name: 'User ' + userId});
+// Generate transactions for high amounts coming to one account
+MATCH (receiver:User {id: 39})
+WITH receiver
+UNWIND [100000, 200000, 300000] AS amount
+CREATE (sender:User)-[:SENT_TO]->(:Transaction {amount: amount, timestamp: datetime({year: 2024, month: 1, day: 17, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})})-[:RECEIVED_FROM]->(receiver);
+
+
+// Generate transactions for different accounts sending money to one user
+MATCH (receiver:User {id: 39})
+WITH receiver
+UNWIND [43, 58, 54, 29] AS senderId
+CREATE (sender:User {id: senderId})-[:SENT_TO]->(:Transaction {amount: toInteger(rand()*5000), timestamp: datetime({year: 2024, month: 1, day: 17, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})})-[:RECEIVED_FROM]->(receiver);
+
+// Generate transactions for high amounts coming to one account
+MATCH (receiver:User {id: 39})
+WITH receiver
+UNWIND [100000, 200000, 300000] AS amount
+CREATE (sender:User)-[:SENT_TO]->(:Transaction {amount: amount, timestamp: datetime({year: 2024, month: 1, day: 17, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})})-[:RECEIVED_FROM]->(receiver);
+
+// Generate transactions for high amounts getting distributed into small amounts
+MATCH (sender:User {id: 55})
+WITH sender
+UNWIND [100000, 200000, 300000] AS initialAmount
+WITH sender, initialAmount
+UNWIND [1, 2, 3] AS parts
+CREATE (sender)-[:SENT_TO]->(:Transaction {amount: toInteger(initialAmount/3), timestamp: datetime({year: 2024, month: 1, day: 17, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})})-[:RECEIVED_FROM]->(:User {id: toInteger(rand() % 100)});
+
+// Generate transactions for untimely (late night) transactions
+MATCH (sender:User)
+WITH sender
+UNWIND range(1, 3) AS times
+CREATE (sender)-[:SENT_TO]->(:Transaction {amount: toInteger(rand()*5000), timestamp: datetime({year: 2024, month: 1, day: 17, hour: toInteger(rand()*6) + 1, minute: toInteger(rand()*59), second: toInteger(rand()*59)})})-[:RECEIVED_FROM]->(:User {id: toInteger(rand() % 100)});
+
+// Create users
+UNWIND range(1, 100) AS userId
+CREATE (:User {id: userId, name: 'User ' + userId});
+// Generate transactions for high amounts coming to one account
+MATCH (receiver:User {id: 39})
+WITH receiver
+UNWIND [100000, 200000, 300000] AS amount
+CREATE (sender:User)-[:SENT_TO]->(:Transaction {amount: amount, timestamp: datetime({year: 2024, month: 1, day: 17, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})})-[:RECEIVED_FROM]->(receiver);
+
+
+// Generate transactions for different accounts sending money to one user
+MATCH (receiver:User {id: 39})
+WITH receiver
+UNWIND [43, 58, 54, 29] AS senderId
+CREATE (sender:User {id: senderId})-[:SENT_TO]->(:Transaction {amount: toInteger(rand()*5000), timestamp: datetime({year: 2024, month: 1, day: 17, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})})-[:RECEIVED_FROM]->(receiver);
+
+// Generate transactions for high amounts coming to one account
+MATCH (receiver:User {id: 39})
+WITH receiver
+UNWIND [100000, 200000, 300000] AS amount
+CREATE (:User)-[:SENT_TO]->(:Transaction {amount: amount, timestamp: datetime({year: 2024, month: 1, day: 17, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})})-[:RECEIVED_FROM]->receiver;
+
+// Generate transactions for high amounts getting distributed into small amounts
+MATCH (sender:User {id: 55})
+WITH sender
+UNWIND [100000, 200000, 300000] AS initialAmount
+WITH sender, initialAmount
+UNWIND [1, 2, 3] AS parts
+CREATE (sender)-[:SENT_TO]->(:Transaction {amount: toInteger(initialAmount/3), timestamp: datetime({year: 2024, month: 1, day: 17, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})})-[:RECEIVED_FROM]->(:User {id: toInteger(rand() % 100)});
+
+// Generate transactions for untimely (late night) transactions
+MATCH (sender:User)
+WITH sender
+UNWIND range(1, 3) AS times
+CREATE (sender)-[:SENT_TO]->(:Transaction {amount: toInteger(rand()*5000), timestamp: datetime({year: 2024, month: 1, day: 17, hour: toInteger(rand()*6) + 1, minute: toInteger(rand()*59), second: toInteger(rand()*59)})})-[:RECEIVED_FROM]->(:User {id: toInteger(rand() % 100)});
+
+// Create users
+UNWIND range(1, 100) AS userId
+CREATE (:User {id: userId, name: 'User ' + userId});
+
+// Generate transactions for user sending money to different accounts
+MATCH (sender:User {id: 1})
+WITH sender
+UNWIND [16, 29, 34] AS recipientId
+CREATE (sender)-[:SENT_TO]->(:Transaction {amount: toInteger(rand()*10000), timestamp: datetime({year: 2024, month: 1, day: 17, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})})-[:RECEIVED_FROM]->(:User {id: recipientId});
+
+// Generate transactions for different accounts sending money to one user
+MATCH (receiver:User {id: 39})
+WITH receiver
+UNWIND [43, 58, 54, 29] AS senderId
+CREATE (sender:User {id: senderId})-[:SENT_TO]->(:Transaction {amount: toInteger(rand()*5000), timestamp: datetime({year: 2024, month: 1, day: 17, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})})-[:RECEIVED_FROM]->(receiver);
+
+// Generate transactions for high amounts coming to one account
+MATCH (receiver:User {id: 39})
+WITH receiver
+UNWIND [100000, 200000, 300000] AS amount
+CREATE (:User)-[:SENT_TO]->(:Transaction {amount: amount, timestamp: datetime({year: 2024, month: 1, day: 17, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})})-[:RECEIVED_FROM]->receiver;
+
+// Generate transactions for high amounts getting distributed into small amounts
+MATCH (sender:User {id: 55})
+WITH sender
+UNWIND [100000, 200000, 300000] AS initialAmount
+WITH sender, initialAmount
+UNWIND [1, 2, 3] AS parts
+CREATE (sender)-[:SENT_TO]->(:Transaction {amount: toInteger(initialAmount/3), timestamp: datetime({year: 2024, month: 1, day: 17, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})})-[:RECEIVED_FROM]->(:User {id: toInteger(rand() % 100)});
+
+// Generate transactions for untimely (late night) transactions
+MATCH (sender:User)
+WITH sender
+UNWIND range(1, 3) AS times
+CREATE (sender)-[:SENT_TO]->(:Transaction {amount: toInteger(rand()*5000), timestamp: datetime({year: 2024, month: 1, day: 17, hour: toInteger(rand()*6) + 1, minute: toInteger(rand()*59), second: toInteger(rand()*59)})})-[:RECEIVED_FROM]->(:User {id: toInteger(rand() % 100)});
+
+MATCH (user:User)-[:RECEIVED_FROM]->(transaction:Transaction)
+RETURN user.id AS UserId, SUM(transaction.amount) AS TotalBalance
+ORDER BY TotalBalance DESC;
+
+MATCH (:User {id: 39})-[:RECEIVED_FROM]->(transaction:Transaction)-[:SENT_TO]->() RETURN transaction;
+
+MATCH (:User {id: 39})-[:RECEIVED_FROM]->(transaction:Transaction)-[:SENT_TO]->() RETURN transaction;
+
+MATCH ()-[:SENT_TO]->(transaction:Transaction)-[:RECEIVED_FROM]->() RETURN transaction;
+
+MATCH (n) RETURN n;
+
+MATCH (n:User) RETURN n LIMIT 25;
+
+MATCH (n) 
+WHERE n.accountNumber IS NOT NULL
+RETURN DISTINCT "node" as entity, n.accountNumber AS accountNumber LIMIT 25
+UNION ALL 
+MATCH ()-[r]-() 
+WHERE r.accountNumber IS NOT NULL
+RETURN DISTINCT "relationship" AS entity, r.accountNumber AS accountNumber LIMIT 25;
+
+MATCH (n:Transaction) RETURN n LIMIT 25;
+
+MATCH p=()-[:RECEIVED_FROM]->() RETURN p LIMIT 25;
+
+MATCH (n:User) RETURN n LIMIT 25;
+
+// specific user id money flow 
+MATCH path = (user:User {id:39})-[:RECEIVED_FROM|SENT_TO*]-(other)
+RETURN path;
+
+// specific user id money flow 
+MATCH path = (user:User {id: 11})-[:RECEIVED_FROM|SENT_TO*]-(other)
+RETURN path;
+
+MATCH path = (user:User {id: 50})-[:RECEIVED_FROM|SENT_TO*]-(other)
+RETURN path;
+
+MATCH path = (user:User {id: 39})-[:RECEIVED_FROM|SENT_TO*]-(other)
+RETURN path;
+
+MATCH (n) 
+WHERE n.style IS NOT NULL
+RETURN DISTINCT "node" as entity, n.style AS style LIMIT 25
+UNION ALL 
+MATCH ()-[r]-() 
+WHERE r.style IS NOT NULL
+RETURN DISTINCT "relationship" AS entity, r.style AS style LIMIT 25;
+
+// largest transaction
+MATCH ()-[:SENT_TO]->(transaction:Transaction)-[:RECEIVED_FROM]->()
+RETURN transaction
+ORDER BY transaction.amount DESC
+LIMIT 1;
+
+MATCH ()-[:SENT_TO]->(transaction:Transaction)-[:RECEIVED_FROM]->()
+RETURN SUM(transaction.amount) AS TotalMoneyFlow;
+
+MATCH ()-[:SENT_TO]->(transaction:Transaction)-[:RECEIVED_FROM]->()
+RETURN transaction
+ORDER BY transaction.amount DESC
+LIMIT 1;
+
+MATCH (user:User)-[:RECEIVED_FROM]->(transaction:Transaction)
+RETURN user.id AS UserId, SUM(transaction.amount) AS TotalBalance
+ORDER BY TotalBalance DESC;
+
+MATCH (:User {id: 39})-[:RECEIVED_FROM]->(transaction:Transaction)-[:SENT_TO]->() RETURN transaction;
+
+MATCH (:User {id: 39})-[:RECEIVED_FROM]->(transaction:Transaction)-[:SENT_TO]->() RETURN transaction;
+
+MATCH ()-[:SENT_TO]->(transaction:Transaction)-[:RECEIVED_FROM]->() RETURN transaction;
+
+MATCH (n) RETURN n;
+
+MATCH (n:Transaction) RETURN n LIMIT 25;
+
+MATCH (n:User) RETURN n LIMIT 25;
+
+MATCH p=()-[:RECEIVED_FROM]->() RETURN p LIMIT 25;
+
+MATCH p=()-[:SENT_TO]->() RETURN p LIMIT 25;
+
+// Additional relationships for user sending money to different accounts
+MATCH (sender:User {id: 1})
+WITH sender
+UNWIND [10, 20, 30] AS recipientId
+CREATE (sender)-[:SENT_TO]->(:Transaction {
+    amount: toInteger(rand()*5000),
+    timestamp: datetime({year: 2024, month: 1, day: 18, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})
+})-[:RECEIVED_FROM]->(:User {id: recipientId});
+// Additional relationships for high amounts coming to one account
+MATCH (receiver:User {id: 39})
+UNWIND [150000, 250000, 350000] AS amount
+MERGE (sender:User)-[:SENT_TO]->(:Transaction {
+    amount: amount,
+    timestamp: datetime({year: 2024, month: 1, day: 18, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})
+})-[:RECEIVED_FROM]->(receiver);
+
+
+// Additional relationships for high amounts getting distributed into small amounts
+MATCH (sender:User {id: 55})
+UNWIND [400000, 500000, 600000] AS initialAmount
+CREATE (sender)-[:SENT_TO]->(:Transaction {
+    amount: toInteger(initialAmount/6),
+    timestamp: datetime({year: 2024, month: 1, day: 18, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})
+})-[:RECEIVED_FROM]->(:User {id: toInteger(rand() % 100)});
+
+// Additional relationships for untimely (late night) transactions
+MATCH (sender:User)
+UNWIND range(1, 2) AS times
+CREATE (sender)-[:SENT_TO]->(:Transaction {
+    amount: toInteger(rand()*7000),
+    timestamp: datetime({year: 2024, month: 1, day: 18, hour: toInteger(rand()*6) + 1, minute: toInteger(rand()*59), second: toInteger(rand()*59)})
+})-[:RECEIVED_FROM]->(:User {id: toInteger(rand() % 100)});
+
+// Create users
+UNWIND range(1, 100) AS userId
+CREATE (:User {id: userId, name: 'User ' + userId});
+
+// Generate transactions for user sending money to different accounts
+MATCH (sender:User {id: 1})
+WITH sender
+UNWIND [16, 29, 34] AS recipientId
+CREATE (sender)-[:SENT_TO]->(:Transaction {amount: toInteger(rand()*10000), timestamp: datetime({year: 2024, month: 1, day: 17, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})})-[:RECEIVED_FROM]->(:User {id: recipientId});
+
+// Generate transactions for different accounts sending money to one user
+MATCH (receiver:User {id: 39})
+WITH receiver
+UNWIND [43, 58, 54, 29] AS senderId
+CREATE (sender:User {id: senderId})-[:SENT_TO]->(:Transaction {amount: toInteger(rand()*5000), timestamp: datetime({year: 2024, month: 1, day: 17, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})})-[:RECEIVED_FROM]->(receiver);
+
+// Generate transactions for high amounts coming to one account
+MATCH (receiver:User {id: 39})
+WITH receiver
+UNWIND [100000, 200000, 300000] AS amount
+CREATE (sender:User)-[:SENT_TO]->(:Transaction {amount: amount, timestamp: datetime({year: 2024, month: 1, day: 17, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})})-[:RECEIVED_FROM]->(receiver);
+
+// Generate transactions for untimely (late night) transactions
+MATCH (sender:User)
+WITH sender
+UNWIND range(1, 3) AS times
+CREATE (sender)-[:SENT_TO]->(:Transaction {amount: toInteger(rand()*5000), timestamp: datetime({year: 2024, month: 1, day: 17, hour: toInteger(rand()*6) + 1, minute: toInteger(rand()*59), second: toInteger(rand()*59)})})-[:RECEIVED_FROM]->(:User {id: toInteger(rand() % 100)});
+
+// Clear all nodes and relationships
+MATCH (n)
+DETACH DELETE n;
+
+// Additional relationships for user sending money to different accounts
+MATCH (sender:User {id: 1})
+WITH sender
+UNWIND [10, 20, 30] AS recipientId
+CREATE (sender)-[:SENT_TO]->(:Transaction {
+    amount: toInteger(rand()*5000),
+    timestamp: datetime({year: 2024, month: 1, day: 18, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})
+})-[:RECEIVED_FROM]->(:User {id: recipientId});
+// Additional relationships for high amounts coming to one account
+MATCH (receiver:User {id: 39})
+UNWIND [150000, 250000, 350000] AS amount
+MERGE (sender:User)-[:SENT_TO]->(:Transaction {
+    amount: amount,
+    timestamp: datetime({year: 2024, month: 1, day: 18, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})
+})-[:RECEIVED_FROM]->(receiver);
+
+
+// Additional relationships for high amounts getting distributed into small amounts
+MATCH (sender:User {id: 55})
+UNWIND [400000, 500000, 600000] AS initialAmount
+CREATE (sender)-[:SENT_TO]->(:Transaction {
+    amount: toInteger(initialAmount/6),
+    timestamp: datetime({year: 2024, month: 1, day: 18, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})
+})-[:RECEIVED_FROM]->(:User {id: toInteger(rand() % 100)});
+
+// Additional relationships for untimely (late night) transactions
+MATCH (sender:User)
+UNWIND range(1, 2) AS times
+CREATE (sender)-[:SENT_TO]->(:Transaction {
+    amount: toInteger(rand()*7000),
+    timestamp: datetime({year: 2024, month: 1, day: 18, hour: toInteger(rand()*6) + 1, minute: toInteger(rand()*59), second: toInteger(rand()*59)})
+})-[:RECEIVED_FROM]->(:User {id: toInteger(rand() % 100)});
+
+// Additional relationships for user sending money to different accounts
+MATCH (sender:User {id: 1})
+WITH sender
+UNWIND [10, 20, 30] AS recipientId
+CREATE (sender)-[:SENT_TO]->(:Transaction {
+    amount: toInteger(rand()*5000),
+    timestamp: datetime({year: 2024, month: 1, day: 18, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})
+})-[:RECEIVED_FROM]->(:User {id: recipientId});
+// Additional relationships for high amounts coming to one account
+MATCH (receiver:User {id: 39})
+UNWIND [150000, 250000, 350000] AS amount
+MERGE (sender:User)-[:SENT_TO]->(:Transaction {
+    amount: amount,
+    timestamp: datetime({year: 2024, month: 1, day: 18, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})
+})-[:RECEIVED_FROM]->(receiver);
+
+// Additional relationships for high amounts coming to one account
+MATCH (receiver:User {id: 39})
+UNWIND [150000, 250000, 350000] AS amount
+CREATE (:User)-[:SENT_TO]->(:Transaction {
+    amount: amount,
+    timestamp: datetime({year: 2024, month: 1, day: 18, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})
+})-[:RECEIVED_FROM]->receiver;
+
+// Additional relationships for high amounts getting distributed into small amounts
+MATCH (sender:User {id: 55})
+UNWIND [400000, 500000, 600000] AS initialAmount
+CREATE (sender)-[:SENT_TO]->(:Transaction {
+    amount: toInteger(initialAmount/6),
+    timestamp: datetime({year: 2024, month: 1, day: 18, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})
+})-[:RECEIVED_FROM]->(:User {id: toInteger(rand() % 100)});
+
+// Additional relationships for untimely (late night) transactions
+MATCH (sender:User)
+UNWIND range(1, 2) AS times
+CREATE (sender)-[:SENT_TO]->(:Transaction {
+    amount: toInteger(rand()*7000),
+    timestamp: datetime({year: 2024, month: 1, day: 18, hour: toInteger(rand()*6) + 1, minute: toInteger(rand()*59), second: toInteger(rand()*59)})
+})-[:RECEIVED_FROM]->(:User {id: toInteger(rand() % 100)});
+
+// Additional relationships for user sending money to different accounts
+MATCH (sender:User {id: 1})
+WITH sender
+UNWIND [10, 20, 30] AS recipientId
+CREATE (sender)-[:SENT_TO]->(:Transaction {
+    amount: toInteger(rand()*5000),
+    timestamp: datetime({year: 2024, month: 1, day: 18, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})
+})-[:RECEIVED_FROM]->(:User {id: recipientId});
+
+// Additional relationships for different accounts sending money to one user
+MATCH (receiver:User {id: 39})
+UNWIND [50, 60, 70] AS senderId
+MERGE (sender:User {id: senderId})
+CREATE (sender)-[:SENT_TO]->(:Transaction {
+    amount: toInteger(rand()*3000),
+    timestamp: datetime({year: 2024, month: 1, day: 18, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})
+})-[:RECEIVED_FROM]->(receiver);
+
+// Additional relationships for high amounts coming to one account
+MATCH (receiver:User {id: 39})
+UNWIND [150000, 250000, 350000] AS amount
+CREATE (:User)-[:SENT_TO]->(:Transaction {
+    amount: amount,
+    timestamp: datetime({year: 2024, month: 1, day: 18, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})
+})-[:RECEIVED_FROM]->receiver;
+
+// Additional relationships for high amounts getting distributed into small amounts
+MATCH (sender:User {id: 55})
+UNWIND [400000, 500000, 600000] AS initialAmount
+CREATE (sender)-[:SENT_TO]->(:Transaction {
+    amount: toInteger(initialAmount/6),
+    timestamp: datetime({year: 2024, month: 1, day: 18, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})
+})-[:RECEIVED_FROM]->(:User {id: toInteger(rand() % 100)});
+
+// Additional relationships for untimely (late night) transactions
+MATCH (sender:User)
+UNWIND range(1, 2) AS times
+CREATE (sender)-[:SENT_TO]->(:Transaction {
+    amount: toInteger(rand()*7000),
+    timestamp: datetime({year: 2024, month: 1, day: 18, hour: toInteger(rand()*6) + 1, minute: toInteger(rand()*59), second: toInteger(rand()*59)})
+})-[:RECEIVED_FROM]->(:User {id: toInteger(rand() % 100)});
+
+// Additional relationships for user sending money to different accounts
+MATCH (sender:User {id: 1})
+WITH sender
+UNWIND [10, 20, 30] AS recipientId
+CREATE (sender)-[:SENT_TO]->(:Transaction {
+    amount: toInteger(rand()*5000),
+    timestamp: datetime({year: 2024, month: 1, day: 18, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})
+})-[:RECEIVED_FROM]->(:User {id: recipientId});
+
+// Additional relationships for different accounts sending money to one user
+MATCH (receiver:User {id: 39})
+UNWIND [50, 60, 70] AS senderId
+CREATE (sender:User {id: senderId})-[:SENT_TO]->(:Transaction {
+    amount: toInteger(rand()*3000),
+    timestamp: datetime({year: 2024, month: 1, day: 18, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})
+})-[:RECEIVED_FROM]->receiver;
+
+// Additional relationships for high amounts coming to one account
+MATCH (receiver:User {id: 39})
+UNWIND [150000, 250000, 350000] AS amount
+CREATE (:User)-[:SENT_TO]->(:Transaction {
+    amount: amount,
+    timestamp: datetime({year: 2024, month: 1, day: 18, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})
+})-[:RECEIVED_FROM]->receiver;
+
+// Additional relationships for high amounts getting distributed into small amounts
+MATCH (sender:User {id: 55})
+UNWIND [400000, 500000, 600000] AS initialAmount
+CREATE (sender)-[:SENT_TO]->(:Transaction {
+    amount: toInteger(initialAmount/6),
+    timestamp: datetime({year: 2024, month: 1, day: 18, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})
+})-[:RECEIVED_FROM]->(:User {id: toInteger(rand() % 100)});
+
+// Additional relationships for untimely (late night) transactions
+MATCH (sender:User)
+UNWIND range(1, 2) AS times
+CREATE (sender)-[:SENT_TO]->(:Transaction {
+    amount: toInteger(rand()*7000),
+    timestamp: datetime({year: 2024, month: 1, day: 18, hour: toInteger(rand()*6) + 1, minute: toInteger(rand()*59), second: toInteger(rand()*59)})
+})-[:RECEIVED_FROM]->(:User {id: toInteger(rand() % 100)});
+
+// Create additional relationships for user sending money to different accounts
+MATCH (sender:User {id: 1})
+WITH sender
+UNWIND [10, 20, 30] AS recipientId
+CREATE (sender)-[:SENT_TO]->(:Transaction {
+    amount: toInteger(rand()*5000),
+    timestamp: datetime({year: 2024, month: 1, day: 18, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})
+})-[:RECEIVED_FROM]->(:User {id: recipientId});
+
+// Create additional relationships for different accounts sending money to one user
+MATCH (receiver:User {id: 39})
+WITH receiver
+UNWIND [50, 60, 70] AS senderId
+FOREACH (ignored IN CASE WHEN TRUE THEN [1] ELSE [] END |
+    CREATE (sender:User {id: senderId})-[:SENT_TO]->(:Transaction {
+        amount: toInteger(rand()*3000),
+        timestamp: datetime({year: 2024, month: 1, day: 18, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})
+    })-[:RECEIVED_FROM]->receiver
+);
+
+// Create additional relationships for high amounts coming to one account
+MATCH (receiver:User {id: 39})
+WITH receiver
+UNWIND [150000, 250000, 350000] AS amount
+CREATE (:User)-[:SENT_TO]->(:Transaction {
+    amount: amount,
+    timestamp: datetime({year: 2024, month: 1, day: 18, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})
+})-[:RECEIVED_FROM]->receiver;
+
+// Create additional relationships for high amounts getting distributed into small amounts
+MATCH (sender:User {id: 55})
+WITH sender
+UNWIND [400000, 500000, 600000] AS initialAmount
+FOREACH (ignored IN CASE WHEN TRUE THEN [1] ELSE [] END |
+    CREATE (sender)-[:SENT_TO]->(:Transaction {
+        amount: toInteger(initialAmount/6),
+        timestamp: datetime({year: 2024, month: 1, day: 18, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})
+    })-[:RECEIVED_FROM]->(:User {id: toInteger(rand() % 100)})
+);
+
+// Create additional relationships for untimely (late night) transactions
+MATCH (sender:User)
+WITH sender
+UNWIND range(1, 2) AS times
+CREATE (sender)-[:SENT_TO]->(:Transaction {
+    amount: toInteger(rand()*7000),
+    timestamp: datetime({year: 2024, month: 1, day: 18, hour: toInteger(rand()*6) + 1, minute: toInteger(rand()*59), second: toInteger(rand()*59)})
+})-[:RECEIVED_FROM]->(:User {id: toInteger(rand() % 100)});
+
+// Additional relationships for different accounts sending money to one user
+MATCH (receiver:User {id: 39})
+WITH receiver
+UNWIND [50, 60, 70] AS senderId
+FOREACH (ignored IN CASE WHEN TRUE THEN [1] ELSE [] END |
+    CREATE (sender:User {id: senderId})-[:SENT_TO]->(:Transaction {
+        amount: toInteger(rand()*3000),
+        timestamp: datetime({year: 2024, month: 1, day: 18, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})
+    })-[:RECEIVED_FROM]->receiver
+);
+
+// Additional relationships for different accounts sending money to one user
+MATCH (receiver:User {id: 39})
+WITH receiver
+UNWIND [50, 60, 70] AS senderId
+CREATE (sender:User {id: senderId})-[:SENT_TO]->(:Transaction {amount: toInteger(rand()*3000), timestamp: datetime({year: 2024, month: 1, day: 18, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})})-[:RECEIVED_FROM]->receiver;
+
+
+// Additional relationships for high amounts coming to one account
+MATCH (receiver:User {id: 39})
+WITH receiver
+UNWIND [150000, 250000, 350000] AS amount
+CREATE (:User)-[:SENT_TO]->(:Transaction {amount: amount, timestamp: datetime({year: 2024, month: 1, day: 18, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})})-[:RECEIVED_FROM]->receiver;
+
+// Additional relationships for high amounts getting distributed into small amounts
+MATCH (sender:User {id: 55})
+WITH sender
+UNWIND [400000, 500000, 600000] AS initialAmount
+WITH sender, initialAmount
+UNWIND [4, 5, 6] AS parts
+CREATE (sender)-[:SENT_TO]->(:Transaction {amount: toInteger(initialAmount/6), timestamp: datetime({year: 2024, month: 1, day: 18, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})})-[:RECEIVED_FROM]->(:User {id: toInteger(rand() % 100)});
+
+// Additional relationships for untimely (late night) transactions
+MATCH (sender:User)
+WITH sender
+UNWIND range(1, 2) AS times
+CREATE (sender)-[:SENT_TO]->(:Transaction {amount: toInteger(rand()*7000), timestamp: datetime({year: 2024, month: 1, day: 18, hour: toInteger(rand()*6) + 1, minute: toInteger(rand()*59), second: toInteger(rand()*59)})})-[:RECEIVED_FROM]->(:User {id: toInteger(rand() % 100)});
+
+// Additional relationships for user sending money to different accounts
+MATCH (sender:User {id: 1})
+WITH sender
+UNWIND [10, 20, 30] AS recipientId
+CREATE (sender)-[:SENT_TO]->(:Transaction {amount: toInteger(rand()*5000), timestamp: datetime({year: 2024, month: 1, day: 18, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})})-[:RECEIVED_FROM]->(:User {id: recipientId});
+
+// Additional relationships for different accounts sending money to one user
+MATCH (receiver:User {id: 39})
+WITH receiver
+UNWIND [50, 60, 70] AS senderId
+CREATE (sender:User {id: senderId})-[:SENT_TO]->(:Transaction {amount: toInteger(rand()*3000), timestamp: datetime({year: 2024, month: 1, day: 18, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})})-[:RECEIVED_FROM]->receiver;
+
+
+// Additional relationships for high amounts coming to one account
+MATCH (receiver:User {id: 39})
+WITH receiver
+UNWIND [150000, 250000, 350000] AS amount
+CREATE (:User)-[:SENT_TO]->(:Transaction {amount: amount, timestamp: datetime({year: 2024, month: 1, day: 18, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})})-[:RECEIVED_FROM]->receiver;
+
+// Additional relationships for high amounts getting distributed into small amounts
+MATCH (sender:User {id: 55})
+WITH sender
+UNWIND [400000, 500000, 600000] AS initialAmount
+WITH sender, initialAmount
+UNWIND [4, 5, 6] AS parts
+CREATE (sender)-[:SENT_TO]->(:Transaction {amount: toInteger(initialAmount/6), timestamp: datetime({year: 2024, month: 1, day: 18, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})})-[:RECEIVED_FROM]->(:User {id: toInteger(rand() % 100)});
+
+// Additional relationships for untimely (late night) transactions
+MATCH (sender:User)
+WITH sender
+UNWIND range(1, 2) AS times
+CREATE (sender)-[:SENT_TO]->(:Transaction {amount: toInteger(rand()*7000), timestamp: datetime({year: 2024, month: 1, day: 18, hour: toInteger(rand()*6) + 1, minute: toInteger(rand()*59), second: toInteger(rand()*59)})})-[:RECEIVED_FROM]->(:User {id: toInteger(rand() % 100)});
+
+// Additional relationships for user sending money to different accounts
+MATCH (sender:User {id: 1})
+WITH sender
+UNWIND [10, 20, 30] AS recipientId
+CREATE (sender)-[:SENT_TO]->(:Transaction {amount: toInteger(rand()*5000), timestamp: datetime({year: 2024, month: 1, day: 18, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})})-[:RECEIVED_FROM]->(:User {id: recipientId});
+
+// Additional relationships for different accounts sending money to one user
+MATCH (receiver:User {id: 39})
+WITH receiver
+UNWIND [50, 60, 70] AS senderId
+CREATE (sender:User {id: senderId})-[:SENT_TO]->(:Transaction {amount: toInteger(rand()*3000), timestamp: datetime({year: 2024, month: 1, day: 18, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})})-[:RECEIVED_FROM]->receiver;
+
+// Additional relationships for high amounts coming to one account
+MATCH (receiver:User {id: 39})
+WITH receiver
+UNWIND [150000, 250000, 350000] AS amount
+CREATE (:User)-[:SENT_TO]->(:Transaction {amount: amount, timestamp: datetime({year: 2024, month: 1, day: 18, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})})-[:RECEIVED_FROM]->receiver;
+
+// Additional relationships for high amounts getting distributed into small amounts
+MATCH (sender:User {id: 55})
+WITH sender
+UNWIND [400000, 500000, 600000] AS initialAmount
+WITH sender, initialAmount
+UNWIND [4, 5, 6] AS parts
+CREATE (sender)-[:SENT_TO]->(:Transaction {amount: toInteger(initialAmount/6), timestamp: datetime({year: 2024, month: 1, day: 18, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})})-[:RECEIVED_FROM]->(:User {id: toInteger(rand() % 100)});
+
+// Additional relationships for untimely (late night) transactions
+MATCH (sender:User)
+WITH sender
+UNWIND range(1, 2) AS times
+CREATE (sender)-[:SENT_TO]->(:Transaction {amount: toInteger(rand()*7000), timestamp: datetime({year: 2024, month: 1, day: 18, hour: toInteger(rand()*6) + 1, minute: toInteger(rand()*59), second: toInteger(rand()*59)})})-[:RECEIVED_FROM]->(:User {id: toInteger(rand() % 100)});
+
+MATCH (n) 
+WHERE n.timestamp IS NOT NULL
+RETURN DISTINCT "node" as entity, n.timestamp AS timestamp LIMIT 25
+UNION ALL 
+MATCH ()-[r]-() 
+WHERE r.timestamp IS NOT NULL
+RETURN DISTINCT "relationship" AS entity, r.timestamp AS timestamp LIMIT 25;
+
+MATCH (n) 
+WHERE n.timestamp IS NOT NULL
+RETURN DISTINCT "node" as entity, n.timestamp AS timestamp LIMIT 25
+UNION ALL 
+MATCH ()-[r]-() 
+WHERE r.timestamp IS NOT NULL
+RETURN DISTINCT "relationship" AS entity, r.timestamp AS timestamp LIMIT 25;
+
+MATCH p=()-[:SENT_TO]->() RETURN p LIMIT 25;
+
+MATCH (n) 
+WHERE n.nodes IS NOT NULL
+RETURN DISTINCT "node" as entity, n.nodes AS nodes LIMIT 25
+UNION ALL 
+MATCH ()-[r]-() 
+WHERE r.nodes IS NOT NULL
+RETURN DISTINCT "relationship" AS entity, r.nodes AS nodes LIMIT 25;
+
+MATCH p=()-[:RECEIVED_FROM]->() RETURN p LIMIT 25;
+
+MATCH (n:Transaction) RETURN n LIMIT 25;
+
+MATCH (n) 
+WHERE n.amount IS NOT NULL
+RETURN DISTINCT "node" as entity, n.amount AS amount LIMIT 25
+UNION ALL 
+MATCH ()-[r]-() 
+WHERE r.amount IS NOT NULL
+RETURN DISTINCT "relationship" AS entity, r.amount AS amount LIMIT 25;
+
+MATCH (n) 
+WHERE n.amount IS NOT NULL
+RETURN DISTINCT "node" as entity, n.amount AS amount LIMIT 25
+UNION ALL 
+MATCH ()-[r]-() 
+WHERE r.amount IS NOT NULL
+RETURN DISTINCT "relationship" AS entity, r.amount AS amount LIMIT 25;
+
+MATCH (n) 
+WHERE n.timestamp IS NOT NULL
+RETURN DISTINCT "node" as entity, n.timestamp AS timestamp LIMIT 25
+UNION ALL 
+MATCH ()-[r]-() 
+WHERE r.timestamp IS NOT NULL
+RETURN DISTINCT "relationship" AS entity, r.timestamp AS timestamp LIMIT 25;
+
+// Create users
+UNWIND range(1, 100) AS userId
+CREATE (:User {id: userId, name: 'User ' + userId});
+
+// Generate transactions for user sending money to different accounts
+MATCH (sender:User {id: 1})
+WITH sender
+UNWIND [16, 29, 34] AS recipientId
+CREATE (sender)-[:SENT_TO]->(:Transaction {amount: toInteger(rand()*10000), timestamp: datetime({year: 2024, month: 1, day: 17, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})})-[:RECEIVED_FROM]->(:User {id: recipientId});
+
+// Generate transactions for different accounts sending money to one user
+MATCH (receiver:User {id: 39})
+WITH receiver
+UNWIND [43, 58, 54, 29] AS senderId
+CREATE (sender:User {id: senderId})-[:SENT_TO]->(:Transaction {amount: toInteger(rand()*5000), timestamp: datetime({year: 2024, month: 1, day: 17, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})})-[:RECEIVED_FROM]->(receiver);
+
+// Generate transactions for high amounts coming to one account
+MATCH (receiver:User {id: 39})
+WITH receiver
+UNWIND [100000, 200000, 300000] AS amount
+CREATE (sender:User)-[:SENT_TO]->(:Transaction {amount: amount, timestamp: datetime({year: 2024, month: 1, day: 17, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})})-[:RECEIVED_FROM]->(receiver);
+
+// Generate transactions for untimely (late night) transactions
+MATCH (sender:User)
+WITH sender
+UNWIND range(1, 3) AS times
+CREATE (sender)-[:SENT_TO]->(:Transaction {amount: toInteger(rand()*5000), timestamp: datetime({year: 2024, month: 1, day: 17, hour: toInteger(rand()*6) + 1, minute: toInteger(rand()*59), second: toInteger(rand()*59)})})-[:RECEIVED_FROM]->(:User {id: toInteger(rand() % 100)});
+
+// Clear all nodes and relationships
+MATCH (n)
+DETACH DELETE n;
+
+// Create users
+UNWIND range(1, 100) AS userId
+CREATE (:User {id: userId, name: 'User ' + userId});
+
+// Generate transactions for user sending money to different accounts
+MATCH (sender:User {id: 1})
+WITH sender
+UNWIND [16, 29, 34] AS recipientId
+CREATE (sender)-[:SENT_TO]->(:Transaction {amount: toInteger(rand()*10000), timestamp: datetime({year: 2024, month: 1, day: 17, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})})-[:RECEIVED_FROM]->(:User {id: recipientId});
+
+// Generate transactions for different accounts sending money to one user
+MATCH (receiver:User {id: 39})
+WITH receiver
+UNWIND [43, 58, 54, 29] AS senderId
+CREATE (sender:User {id: senderId})-[:SENT_TO]->(:Transaction {amount: toInteger(rand()*5000), timestamp: datetime({year: 2024, month: 1, day: 17, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})})-[:RECEIVED_FROM]->(receiver);
+
+// Generate transactions for high amounts coming to one account
+MATCH (receiver:User {id: 39})
+WITH receiver
+UNWIND [100000, 200000, 300000] AS amount
+CREATE (sender:User)-[:SENT_TO]->(:Transaction {amount: amount, timestamp: datetime({year: 2024, month: 1, day: 17, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})})-[:RECEIVED_FROM]->(receiver);
+
+// Generate transactions for untimely (late night) transactions
+MATCH (sender:User)
+WITH sender
+UNWIND range(1, 3) AS times
+CREATE (sender)-[:SENT_TO]->(:Transaction {amount: toInteger(rand()*5000), timestamp: datetime({year: 2024, month: 1, day: 17, hour: toInteger(rand()*6) + 1, minute: toInteger(rand()*59), second: toInteger(rand()*59)})})-[:RECEIVED_FROM]->(:User {id: toInteger(rand() % 100)});
+
+// Create users
+UNWIND range(1, 100) AS userId
+CREATE (:User {id: userId, name: 'User ' + userId});
+
+// Generate transactions for user sending money to different accounts
+MATCH (sender:User {id: 1})
+WITH sender
+UNWIND [16, 29, 34] AS recipientId
+CREATE (sender)-[:SENT_TO]->(:Transaction {amount: toInteger(rand()*10000), timestamp: datetime({year: 2024, month: 1, day: 17, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})})-[:RECEIVED_FROM]->(:User {id: recipientId});
+
+// Generate transactions for different accounts sending money to one user
+MATCH (receiver:User {id: 39})
+WITH receiver
+UNWIND [43, 58, 54, 29] AS senderId
+CREATE (sender:User {id: senderId})-[:SENT_TO]->(:Transaction {amount: toInteger(rand()*5000), timestamp: datetime({year: 2024, month: 1, day: 17, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})})-[:RECEIVED_FROM]->(receiver);
+
+// Generate transactions for high amounts coming to one account
+MATCH (receiver:User {id: 39})
+WITH receiver
+UNWIND [100000, 200000, 300000] AS amount
+CREATE (:User)-[:SENT_TO]->(:Transaction {amount: amount, timestamp: datetime({year: 2024, month: 1, day: 17, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})})-[:RECEIVED_FROM]->receiver;
+
+// Generate transactions for untimely (late night) transactions
+MATCH (sender:User)
+WITH sender
+UNWIND range(1, 3) AS times
+CREATE (sender)-[:SENT_TO]->(:Transaction {amount: toInteger(rand()*5000), timestamp: datetime({year: 2024, month: 1, day: 17, hour: toInteger(rand()*6) + 1, minute: toInteger(rand()*59), second: toInteger(rand()*59)})})-[:RECEIVED_FROM]->(:User {id: toInteger(rand() % 100)});
+
+// Create users
+UNWIND range(1, 100) AS userId
+CREATE (:User {id: userId, name: 'User ' + userId});
+
+// Generate transactions for user sending money to different accounts
+MATCH (sender:User {id: 1})
+WITH sender
+UNWIND [16, 29, 34] AS recipientId
+CREATE (sender)-[:SENT_TO]->(:Transaction {amount: toInteger(rand()*10000), timestamp: datetime({year: 2024, month: 1, day: 17, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})})-[:RECEIVED_FROM]->(:User {id: recipientId});
+
+// Generate transactions for different accounts sending money to one user
+MATCH (receiver:User {id: 39})
+WITH receiver
+UNWIND [43, 58, 54, 29] AS senderId
+CREATE (sender:User {id: senderId})-[:SENT_TO]->(:Transaction {amount: toInteger(rand()*5000), timestamp: datetime({year: 2024, month: 1, day: 17, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})})-[:RECEIVED_FROM]->(receiver);
+
+// Generate transactions for high amounts coming to one account
+MATCH (receiver:User {id: 39})
+WITH receiver
+UNWIND [100000, 200000, 300000] AS amount
+CREATE (:User)-[:SENT_TO]->(:Transaction {amount: amount, timestamp: datetime({year: 2024, month: 1, day: 17, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})})-[:RECEIVED_FROM]->receiver;
+
+// Generate transactions for high amounts getting distributed into small amounts
+MATCH (sender:User {id: 55})
+WITH sender
+UNWIND [100000, 200000, 300000] AS initialAmount
+WITH sender, initialAmount
+UNWIND [1, 2, 3] AS parts
+CREATE (sender)-[:SENT_TO]->(:Transaction {amount: toInteger(initialAmount/3), timestamp: datetime({year: 2024, month: 1, day: 17, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})})-[:RECEIVED_FROM]->(:User {id: toInteger(rand() % 100)});
+
+// Generate transactions for untimely (late night) transactions
+MATCH (sender:User)
+WITH sender
+UNWIND range(1, 3) AS times
+CREATE (sender)-[:SENT_TO]->(:Transaction {amount: toInteger(rand()*5000), timestamp: datetime({year: 2024, month: 1, day: 17, hour: toInteger(rand()*6) + 1, minute: toInteger(rand()*59), second: toInteger(rand()*59)})})-[:RECEIVED_FROM]->(:User {id: toInteger(rand() % 100)});
+
+// Clear all nodes and relationships
+MATCH (n)
+DETACH DELETE n;
+
+// Create users
+UNWIND range(1, 100) AS userId
+CREATE (:User {id: userId, name: 'User ' + userId});
+
+// Generate transactions for user sending money to different accounts
+MATCH (sender:User {id: 1})
+WITH sender
+UNWIND [16, 29, 34] AS recipientId
+CREATE (sender)-[:SENT_TO]->(:Transaction {amount: toInteger(rand()*10000), timestamp: datetime({year: 2024, month: 1, day: 17, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})})-[:RECEIVED_FROM]->(:User {id: recipientId});
+
+// Generate transactions for different accounts sending money to one user
+MATCH (receiver:User {id: 39})
+WITH receiver
+UNWIND [43, 58, 54, 29] AS senderId
+CREATE (sender:User {id: senderId})-[:SENT_TO]->(:Transaction {amount: toInteger(rand()*5000), timestamp: datetime({year: 2024, month: 1, day: 17, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})})-[:RECEIVED_FROM]->receiver;
+
+// Generate transactions for high amounts coming to one account
+MATCH (receiver:User {id: 39})
+WITH receiver
+UNWIND [100000, 200000, 300000] AS amount
+CREATE (:User)-[:SENT_TO]->(:Transaction {amount: amount, timestamp: datetime({year: 2024, month: 1, day: 17, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})})-[:RECEIVED_FROM]->receiver;
+
+// Generate transactions for high amounts getting distributed into small amounts
+MATCH (sender:User {id: 55})
+WITH sender
+UNWIND [100000, 200000, 300000] AS initialAmount
+WITH sender, initialAmount
+UNWIND [1, 2, 3] AS parts
+CREATE (sender)-[:SENT_TO]->(:Transaction {amount: toInteger(initialAmount/3), timestamp: datetime({year: 2024, month: 1, day: 17, hour: toInteger(rand()*6) + 18, minute: toInteger(rand()*59), second: toInteger(rand()*59)})})-[:RECEIVED_FROM]->(:User {id: toInteger(rand() % 100)});
+
+// Generate transactions for untimely (late night) transactions
+MATCH (sender:User)
+WITH sender
+UNWIND range(1, 3) AS times
+CREATE (sender)-[:SENT_TO]->(:Transaction {amount: toInteger(rand()*5000), timestamp: datetime({year: 2024, month: 1, day: 17, hour: toInteger(rand()*6) + 1, minute: toInteger(rand()*59), second: toInteger(rand()*59)})})-[:RECEIVED_FROM]->(:User {id: toInteger(rand() % 100)});
+
+// Clear all nodes and relationships
+MATCH (n)
+DETACH DELETE n;
+
+MATCH p=()-[:MADE_TRANSACTION]->() RETURN p LIMIT 25;
+
+// Create users
+UNWIND range(1, 10) AS userIndex
+CREATE (:Person {name: 'User' + userIndex});
+
+// Create accounts for each user
+MATCH (user:Person)
+CREATE (:Account {accountNumber: user.name + '_Account1', balance: toInteger(rand() * 5000), currency: 'USD'})-[:OWNS]->(user),
+       (:Account {accountNumber: user.name + '_Account2', balance: toInteger(rand() * 5000), currency: 'USD'})-[:OWNS]->(user);
+
+// High amount transaction from different accounts to one account
+MATCH (sender:Account)-[:OWNS]->(user:Person {name: 'User1'}), (receiver:Account)-[:OWNS]->(:Person)
+WHERE sender <> receiver
+CREATE (sender)-[:MADE_TRANSACTION {amount: toInteger(rand() * 500), currency: 'USD', date: datetime({year: 2024, month: 1, day: 1, hour: 12})}]->(receiver);
+
+// High amount getting distributed into small amounts from one account
+MATCH (sender:Account)-[:OWNS]->(user:Person {name: 'User1'}), (receiver:Account)-[:OWNS]->(:Person)
+WHERE sender <> receiver
+WITH sender, receiver, toInteger(rand() * 500) AS totalAmount
+CREATE (sender)-[:MADE_TRANSACTION {amount: totalAmount, currency: 'USD', date: datetime({year: 2024, month: 1, day: 2, hour: 10})}]->(receiver);
+
+// Untimely (late night) transactions happening to multiple accounts
+MATCH (sender:Account)-[:OWNS]->(user:Person), (receiver:Account)-[:OWNS]->(:Person)
+WHERE sender <> receiver
+WITH sender, receiver
+CREATE (sender)-[:MADE_TRANSACTION {amount: toInteger(rand() * 300), currency: 'USD', date: datetime({year: 2024, month: 1, day: 3, hour: 23})}]->(receiver);
+// Complex dataset of 1000 field values containing all of the constraints
+UNWIND range(1, 100) AS dataIndex
+MATCH (sender:Account)-[:OWNS]->(user:Person), (receiver:Account)-[:OWNS]->(:Person)
+WHERE sender <> receiver
+WITH sender, receiver, dataIndex
+CREATE (sender)-[:MADE_TRANSACTION {
+  amount: toInteger(rand() * 100),
+  currency: 'USD',
+  date: date({year: 2024, month: 1, day: 1}) + duration({days: dataIndex, hours: 8})
+}]->(receiver);
+
+// Clear all nodes and relationships
+MATCH (n)
+DETACH DELETE n;
+
+// Create users
+UNWIND range(1, 10) AS userIndex
+CREATE (:Person {name: 'User' + userIndex});
+
+// Create accounts for each user
+MATCH (user:Person)
+CREATE (:Account {accountNumber: user.name + '_Account1', balance: toInteger(rand() * 5000), currency: 'USD'})-[:OWNS]->(user),
+       (:Account {accountNumber: user.name + '_Account2', balance: toInteger(rand() * 5000), currency: 'USD'})-[:OWNS]->(user);
+
+// High amount transaction from different accounts to one account
+MATCH (sender:Account)-[:OWNS]->(user:Person {name: 'User1'}), (receiver:Account)-[:OWNS]->(:Person)
+WHERE sender <> receiver
+CREATE (sender)-[:MADE_TRANSACTION {amount: toInteger(rand() * 500), currency: 'USD', date: datetime({year: 2024, month: 1, day: 1, hour: 12})}]->(receiver);
+
+// High amount getting distributed into small amounts from one account
+MATCH (sender:Account)-[:OWNS]->(user:Person {name: 'User1'}), (receiver:Account)-[:OWNS]->(:Person)
+WHERE sender <> receiver
+WITH sender, receiver, toInteger(rand() * 500) AS totalAmount
+CREATE (sender)-[:MADE_TRANSACTION {amount: totalAmount, currency: 'USD', date: datetime({year: 2024, month: 1, day: 2, hour: 10})}]->(receiver);
+
+// Untimely (late night) transactions happening to multiple accounts
+MATCH (sender:Account)-[:OWNS]->(user:Person), (receiver:Account)-[:OWNS]->(:Person)
+WHERE sender <> receiver
+WITH sender, receiver
+CREATE (sender)-[:MADE_TRANSACTION {amount: toInteger(rand() * 300), currency: 'USD', date: datetime({year: 2024, month: 1, day: 3, hour: 23})}]->(receiver);
+// Complex dataset of 1000 field values containing all of the constraints
+UNWIND range(1, 100) AS dataIndex
+MATCH (sender:Account)-[:OWNS]->(user:Person), (receiver:Account)-[:OWNS]->(:Person)
+WHERE sender <> receiver
+WITH sender, receiver, dataIndex
+CREATE (sender)-[:MADE_TRANSACTION {
+  amount: toInteger(rand() * 100),
+  currency: 'USD',
+  date: date({year: 2024, month: 1, day: 1}) + duration({days: dataIndex, hours: 8})
+}]->(receiver);
+
+// Create users
+UNWIND range(1, 10) AS userIndex
+CREATE (:Person {name: 'User' + userIndex});
+
+// Create accounts for each user
+MATCH (user:Person)
+CREATE (:Account {accountNumber: user.name + '_Account1', balance: toInteger(rand() * 5000), currency: 'USD'})-[:OWNS]->(user),
+       (:Account {accountNumber: user.name + '_Account2', balance: toInteger(rand() * 5000), currency: 'USD'})-[:OWNS]->(user);
+
+// High amount transaction from different accounts to one account
+MATCH (sender:Account)-[:OWNS]->(user:Person {name: 'User1'}), (receiver:Account)-[:OWNS]->(:Person)
+WHERE sender <> receiver
+CREATE (sender)-[:MADE_TRANSACTION {amount: toInteger(rand() * 500), currency: 'USD', date: datetime({year: 2024, month: 1, day: 1, hour: 12})}]->(receiver);
+
+// High amount getting distributed into small amounts from one account
+MATCH (sender:Account)-[:OWNS]->(user:Person {name: 'User1'}), (receiver:Account)-[:OWNS]->(:Person)
+WHERE sender <> receiver
+WITH sender, receiver, toInteger(rand() * 500) AS totalAmount
+CREATE (sender)-[:MADE_TRANSACTION {amount: totalAmount, currency: 'USD', date: datetime({year: 2024, month: 1, day: 2, hour: 10})}]->(receiver);
+
+// Untimely (late night) transactions happening to multiple accounts
+MATCH (sender:Account)-[:OWNS]->(user:Person), (receiver:Account)-[:OWNS]->(:Person)
+WHERE sender <> receiver
+WITH sender, receiver
+CREATE (sender)-[:MADE_TRANSACTION {amount: toInteger(rand() * 300), currency: 'USD', date: datetime({year: 2024, month: 1, day: 3, hour: 23})}]->(receiver);
+// Complex dataset of 1000 field values containing all of the constraints
+UNWIND range(1, 100) AS dataIndex
+MATCH (sender:Account)-[:OWNS]->(user:Person), (receiver:Account)-[:OWNS]->(:Person)
+WHERE sender <> receiver
+WITH sender, receiver, dataIndex
+CREATE (sender)-[:MADE_TRANSACTION {
+  amount: toInteger(rand() * 100),
+  currency: 'USD',
+  date: datetime({year: 2024, month: 1, day: 1 + dataIndex, hour: 8})
+}]->(receiver);
+
+MATCH (n) 
+WHERE n.amount IS NOT NULL
+RETURN DISTINCT "node" as entity, n.amount AS amount LIMIT 25
+UNION ALL 
+MATCH ()-[r]-() 
+WHERE r.amount IS NOT NULL
+RETURN DISTINCT "relationship" AS entity, r.amount AS amount LIMIT 25;
+
+// Clear all nodes and relationships
+MATCH (n)
+DETACH DELETE n;
+
+// Create users
+UNWIND range(1, 10) AS userIndex
+CREATE (:Person {name: 'User' + userIndex});
+
+// Create accounts for each user
+MATCH (user:Person)
+CREATE (:Account {accountNumber: user.name + '_Account1', balance: toInteger(rand() * 5000), currency: 'USD'})-[:OWNS]->(user),
+       (:Account {accountNumber: user.name + '_Account2', balance: toInteger(rand() * 5000), currency: 'USD'})-[:OWNS]->(user);
+
+// High amount transaction from different accounts to one account
+MATCH (sender:Account)-[:OWNS]->(user:Person {name: 'User1'}), (receiver:Account)-[:OWNS]->(:Person)
+WHERE sender <> receiver
+CREATE (sender)-[:MADE_TRANSACTION {amount: toInteger(rand() * 500), currency: 'USD', date: datetime({year: 2024, month: 1, day: 1, hour: 12})}]->(receiver);
+
+// High amount getting distributed into small amounts from one account
+MATCH (sender:Account)-[:OWNS]->(user:Person {name: 'User1'}), (receiver:Account)-[:OWNS]->(:Person)
+WHERE sender <> receiver
+WITH sender, receiver, toInteger(rand() * 500) AS totalAmount
+CREATE (sender)-[:MADE_TRANSACTION {amount: totalAmount, currency: 'USD', date: datetime({year: 2024, month: 1, day: 2, hour: 10})}]->(receiver);
+
+// Untimely (late night) transactions happening to multiple accounts
+MATCH (sender:Account)-[:OWNS]->(user:Person), (receiver:Account)-[:OWNS]->(:Person)
+WHERE sender <> receiver
+WITH sender, receiver
+CREATE (sender)-[:MADE_TRANSACTION {amount: toInteger(rand() * 300), currency: 'USD', date: datetime({year: 2024, month: 1, day: 3, hour: 23})}]->(receiver);
+
+// Complex dataset of 1000 field values containing all of the constraints
+UNWIND range(1, 100) AS dataIndex
+MATCH (sender:Account)-[:OWNS]->(user:Person), (receiver:Account)-[:OWNS]->(:Person)
+WHERE sender <> receiver
+WITH sender, receiver, dataIndex
+CREATE (sender)-[:MADE_TRANSACTION {
+  amount: toInteger(rand() * 100),
+  currency: 'USD',
+  date: datetime({year: 2024, month: 1, day: 1 + dataIndex, hour: 8})
+}]->(receiver);
+
+// Create users
+UNWIND range(1, 10) AS userIndex
+CREATE (:Person {name: 'User' + userIndex});
+
+// Create accounts for each user
+MATCH (user:Person)
+CREATE (:Account {accountNumber: user.name + '_Account1', balance: toInteger(rand() * 5000), currency: 'USD'})-[:OWNS]->(user),
+       (:Account {accountNumber: user.name + '_Account2', balance: toInteger(rand() * 5000), currency: 'USD'})-[:OWNS]->(user);
+
+// High amount transaction from different accounts to one account
+MATCH (sender:Account)-[:OWNS]->(user:Person {name: 'User1'}), (receiver:Account)-[:OWNS]->(:Person)
+WHERE sender <> receiver
+CREATE (sender)-[:MADE_TRANSACTION {amount: toInteger(rand() * 500), currency: 'USD', date: datetime({year: 2024, month: 1, day: 1, hour: 12})}]->(receiver);
+
+// High amount getting distributed into small amounts from one account
+MATCH (sender:Account)-[:OWNS]->(user:Person {name: 'User1'}), (receiver:Account)-[:OWNS]->(:Person)
+WHERE sender <> receiver
+WITH sender, receiver, toInteger(rand() * 500) AS totalAmount
+CREATE (sender)-[:MADE_TRANSACTION {amount: totalAmount, currency: 'USD', date: datetime({year: 2024, month: 1, day: 2, hour: 10})}]->(receiver);
+
+// Untimely (late night) transactions happening to multiple accounts
+MATCH (sender:Account)-[:OWNS]->(user:Person), (receiver:Account)-[:OWNS]->(:Person)
+WHERE sender <> receiver
+WITH sender, receiver
+CREATE (sender)-[:MADE_TRANSACTION {amount: toInteger(rand() * 300), currency: 'USD', date: datetime({year: 2024, month: 1, day: 3, hour: 23})}]->(receiver);
+
+// Complex dataset of 1000 field values containing all of the constraints
+UNWIND range(1, 100) AS dataIndex
+MATCH (sender:Account)-[:OWNS]->(user:Person), (receiver:Account)-[:OWNS]->(:Person)
+WHERE sender <> receiver
+WITH sender, receiver
+CREATE (sender)-[:MADE_TRANSACTION {amount: toInteger(rand() * 100), currency: 'USD', date: datetime({year: 2024, month: 1, day: 1 + dataIndex, hour: 8})}]->(receiver);
+
+// Create users
+UNWIND range(1, 10) AS userIndex
+CREATE (:Person {name: 'User' + userIndex});
+
+// Create accounts for each user
+MATCH (user:Person)
+CREATE (:Account {accountNumber: user.name + '_Account1', balance: toInteger(rand() * 5000), currency: 'USD'})-[:OWNS]->(user),
+       (:Account {accountNumber: user.name + '_Account2', balance: toInteger(rand() * 5000), currency: 'USD'})-[:OWNS]->(user);
+
+// High amount transaction from different accounts to one account
+MATCH (sender:Account)-[:OWNS]->(user:Person {name: 'User1'}), (receiver:Account)-[:OWNS]->(:Person)
+WHERE sender <> receiver
+CREATE (sender)-[:MADE_TRANSACTION {amount: toInteger(rand() * 500), currency: 'USD', date: datetime({year: 2024, month: 1, day: 1, hour: 12})}]->(receiver);
+
+// High amount getting distributed into small amounts from one account
+MATCH (sender:Account)-[:OWNS]->(user:Person {name: 'User1'}), (receiver:Account)-[:OWNS]->(:Person)
+WHERE sender <> receiver
+WITH sender, receiver, toInteger(rand() * 500) AS totalAmount
+CREATE (sender)-[:MADE_TRANSACTION {amount: totalAmount, currency: 'USD', date: datetime({year: 2024, month: 1, day: 2, hour: 10})}]->(receiver);
+
+// Untimely (late night) transactions happening to multiple accounts
+MATCH (sender:Account)-[:OWNS]->(user:Person), (receiver:Account)-[:OWNS]->(:Person)
+WHERE sender <> receiver
+WITH sender, receiver
+CREATE (sender)-[:MADE_TRANSACTION {amount: toInteger(rand() * 300), currency: 'USD', date: datetime({year: 2024, month: 1, day: 3, hour: 23})}]->(receiver);
+
+// Complex dataset of 1000 field values containing all of the constraints
+UNWIND range(1, 100) AS dataIndex
+MATCH (sender:Account)-[:OWNS]->(user:Person), (receiver:Account)-[:OWNS]->(:Person)
+WHERE sender <> receiver
+WITH sender, receiver
+CREATE (sender)-[:MADE_TRANSACTION {amount: toInteger(rand() * 100), currency: 'USD', date: datetime({year: 2024, month: 1, day: 1 + dataIndex, hour: 8})}]->(receiver);
+
+MATCH (n:Account) RETURN n LIMIT 25;
+
+MATCH p=()-[:MADE_TRANSACTION]->() RETURN p LIMIT 25;
+
+MATCH (n:Account) RETURN n LIMIT 25;
+
+MATCH (n) 
+WHERE n.visualisation IS NOT NULL
+RETURN DISTINCT "node" as entity, n.visualisation AS visualisation LIMIT 25
+UNION ALL 
+MATCH ()-[r]-() 
+WHERE r.visualisation IS NOT NULL
+RETURN DISTINCT "relationship" AS entity, r.visualisation AS visualisation LIMIT 25;
+
+MATCH p=()-[:OWNS]->() RETURN p LIMIT 25;
+
+MATCH (n:Person) RETURN n LIMIT 25;
+
+MATCH (n:Account) RETURN n LIMIT 25;
+
+MATCH p=()-[:OWNS]->() RETURN p LIMIT 25;
+
+MATCH p=()-[:MADE_TRANSACTION]->() RETURN p LIMIT 25;
+
+MATCH p=()-[:MADE_TRANSACTION]->() RETURN p LIMIT 25;
+
+// Visualize transactions for the user
+MATCH (sender:Person {name: 'John'})-[transaction:MADE_TRANSACTION]->(receiver)
+RETURN sender, transaction, receiver;
+
+// Create a user
+CREATE (:Person {name: 'John'});
+
+// Create multiple transactions for the user (20 transactions)
+MATCH (sender:Person {name: 'John'})
+WITH sender
+UNWIND range(1, 20) AS transactionNumber
+MATCH (receiver:Account)
+WHERE receiver <> sender
+CREATE (sender)-[:MADE_TRANSACTION {
+  amount: toInteger(rand() * 1000), 
+  currency: 'USD', 
+  date: date({year: 2024, month: 1, day: transactionNumber})
+}]->(receiver);
+
+// Find the largest transaction
+MATCH (sender)-[transaction:MADE_TRANSACTION]->(receiver)
+RETURN sender, transaction, receiver
+ORDER BY transaction.amount DESC
+LIMIT 1;
+
+// Calculate total balance for each person
+MATCH (p:Person)-[:OWNS]->(a:Account)
+RETURN p, SUM(a.balance) AS totalBalance;
+
+// Visualize all transactions
+MATCH (sender)-[transaction:MADE_TRANSACTION]->(receiver)
+RETURN sender, transaction, receiver;
+
+// Visualize all transactions
+MATCH (sender)-[transaction:MADE_TRANSACTION]->(receiver)
+RETURN sender, transaction, receiver;
+
+// Visualize all nodes and relationships
+MATCH (n)-[r]->(m)
+RETURN n, r, m;
+
+// Check nodes
+MATCH (n) RETURN n LIMIT 10;
+
+// Check relationships
+MATCH ()-[r]->() RETURN r LIMIT 10;
+
+// Create sample transactions
+MATCH (sender:Account {accountNumber: 'A001'}), (receiver:Account {accountNumber: 'A002'})
+CREATE (sender)-[:MADE_TRANSACTION {amount: 500, currency: 'USD', date: '2024-01-17'}]->(receiver)
+WITH sender, receiver  // Use WITH to pass on variables
+
+MATCH (sender:Account {accountNumber: 'A002'}), (receiver:Account {accountNumber: 'A003'})
+CREATE (sender)-[:MADE_TRANSACTION {amount: 200, currency: 'EUR', date: '2024-01-18'}]->(receiver)
+WITH sender, receiver  // Use WITH to pass on variables
+
+MATCH (sender:Account {accountNumber: 'A003'}), (receiver:Account {accountNumber: 'A001'})
+CREATE (sender)-[:MADE_TRANSACTION {amount: 300, currency: 'USD', date: '2024-01-19'}]->(receiver);
+
+// Create sample transactions
+MATCH (sender:Account {accountNumber: 'A001'}), (receiver:Account {accountNumber: 'A002'})
+CREATE (sender)-[:MADE_TRANSACTION {amount: 500, currency: 'USD', date: '2024-01-17'}]->(receiver)
+
+MATCH (sender:Account {accountNumber: 'A002'}), (receiver:Account {accountNumber: 'A003'})
+CREATE (sender)-[:MADE_TRANSACTION {amount: 200, currency: 'EUR', date: '2024-01-18'}]->(receiver)
+
+MATCH (sender:Account {accountNumber: 'A003'}), (receiver:Account {accountNumber: 'A001'})
+CREATE (sender)-[:MADE_TRANSACTION {amount: 300, currency: 'USD', date: '2024-01-19'}]->(receiver);
+
+// Check nodes
+MATCH (n) RETURN n LIMIT 10;
+
+// Check relationships
+MATCH ()-[r]->() RETURN r LIMIT 10;
+
+// Create relationships between individuals and accounts
+MATCH (p:Person {name: 'Alice'}), (a:Account {accountNumber: 'A001'})
+CREATE (p)-[:OWNS]->(a)
+WITH p, a  // Use WITH to pass on variables
+
+MATCH (p:Person {name: 'Bob'}), (a:Account {accountNumber: 'A002'})
+CREATE (p)-[:OWNS]->(a)
+WITH p, a  // Use WITH to pass on variables
+
+MATCH (p:Person {name: 'Charlie'}), (a:Account {accountNumber: 'A003'})
+CREATE (p)-[:OWNS]->(a);
+
+// Create relationships between individuals and accounts
+MATCH (p:Person {name: 'Alice'}), (a:Account {accountNumber: 'A001'})
+CREATE (p)-[:OWNS]->(a)
+
+MATCH (p:Person {name: 'Bob'}), (a:Account {accountNumber: 'A002'})
+CREATE (p)-[:OWNS]->(a)
+
+MATCH (p:Person {name: 'Charlie'}), (a:Account {accountNumber: 'A003'})
+CREATE (p)-[:OWNS]->(a);
+
+// Create nodes for accounts
+CREATE (:Account {accountNumber: 'A001', balance: 10000, currency: 'USD'})
+CREATE (:Account {accountNumber: 'A002', balance: 5000, currency: 'USD'})
+CREATE (:Account {accountNumber: 'A003', balance: 8000, currency: 'EUR'})
+
+// Create nodes for individuals
+CREATE (:Person {name: 'Alice'})
+CREATE (:Person {name: 'Bob'})
+CREATE (:Person {name: 'Charlie'});
+
+// Check nodes
+MATCH (n) RETURN n LIMIT 10;
+
+// Check relationships
+MATCH ()-[r]->() RETURN r LIMIT 10;
+
+// Visualize all transactions
+MATCH (sender)-[transaction:MADE_TRANSACTION]->(receiver)
+RETURN sender, transaction, receiver;
+
+// Visualize all transactions
+MATCH (sender)-[transaction:MADE_TRANSACTION]->(receiver)
+RETURN sender, transaction, receiver;
+
+// Visualize all transactions
+MATCH (sender)-[transaction:MADE_TRANSACTION]->(receiver)
+RETURN sender, transaction, receiver;
+
+// Create sample transactions
+MATCH (sender:Account {accountNumber: 'A001'}), (receiver:Account {accountNumber: 'A002'})
+CREATE (sender)-[:MADE_TRANSACTION {amount: 500, currency: 'USD', date: '2024-01-17'}]->(receiver)
+WITH sender, receiver  // Use WITH to pass on variables
+
+MATCH (sender:Account {accountNumber: 'A002'}), (receiver:Account {accountNumber: 'A003'})
+CREATE (sender)-[:MADE_TRANSACTION {amount: 200, currency: 'EUR', date: '2024-01-18'}]->(receiver)
+WITH sender, receiver  // Use WITH to pass on variables
+
+MATCH (sender:Account {accountNumber: 'A003'}), (receiver:Account {accountNumber: 'A001'})
+CREATE (sender)-[:MADE_TRANSACTION {amount: 300, currency: 'USD', date: '2024-01-19'}]->(receiver);
+
+// For example, find all transactions and their amounts
+MATCH (sender)-[transaction:MADE_TRANSACTION]->(receiver)
+RETURN sender, transaction, receiver;
+
+// Create sample transactions
+MATCH (sender:Account {accountNumber: 'A001'}), (receiver:Account {accountNumber: 'A002'})
+CREATE (sender)-[:MADE_TRANSACTION {amount: 500, currency: 'USD', date: '2024-01-17'}]->(receiver)
+WITH sender, receiver  // Use WITH to pass on variables
+
+MATCH (sender:Account {accountNumber: 'A002'}), (receiver:Account {accountNumber: 'A003'})
+CREATE (sender)-[:MADE_TRANSACTION {amount: 200, currency: 'EUR', date: '2024-01-18'}]->(receiver)
+WITH sender, receiver  // Use WITH to pass on variables
+
+MATCH (sender:Account {accountNumber: 'A003'}), (receiver:Account {accountNumber: 'A001'})
+CREATE (sender)-[:MADE_TRANSACTION {amount: 300, currency: 'USD', date: '2024-01-19'}]->(receiver);
+
+// Create sample transactions
+MATCH (sender:Account {accountNumber: 'A001'}), (receiver:Account {accountNumber: 'A002'})
+CREATE (sender)-[:MADE_TRANSACTION {amount: 500, currency: 'USD', date: '2024-01-17'}]->(receiver)
+
+MATCH (sender:Account {accountNumber: 'A002'}), (receiver:Account {accountNumber: 'A003'})
+CREATE (sender)-[:MADE_TRANSACTION {amount: 200, currency: 'EUR', date: '2024-01-18'}]->(receiver)
+
+MATCH (sender:Account {accountNumber: 'A003'}), (receiver:Account {accountNumber: 'A001'})
+CREATE (sender)-[:MADE_TRANSACTION {amount: 300, currency: 'USD', date: '2024-01-19'}]->(receiver);
+
+// Create relationships between individuals and accounts
+MATCH (p:Person {name: 'Alice'}), (a:Account {accountNumber: 'A001'})
+CREATE (p)-[:OWNS]->(a)
+WITH p, a  // Use WITH to pass on variables
+
+MATCH (p:Person {name: 'Bob'}), (a:Account {accountNumber: 'A002'})
+CREATE (p)-[:OWNS]->(a)
+WITH p, a  // Use WITH to pass on variables
+
+MATCH (p:Person {name: 'Charlie'}), (a:Account {accountNumber: 'A003'})
+CREATE (p)-[:OWNS]->(a);
+
+// Create nodes for accounts
+CREATE (:Account {accountNumber: 'A001', balance: 10000, currency: 'USD'})
+CREATE (:Account {accountNumber: 'A002', balance: 5000, currency: 'USD'})
+CREATE (:Account {accountNumber: 'A003', balance: 8000, currency: 'EUR'})
+
+// Create nodes for individuals
+CREATE (:Person {name: 'Alice'})
+CREATE (:Person {name: 'Bob'})
+CREATE (:Person {name: 'Charlie'})
+
+// Create relationships between individuals and accounts
+MATCH (p:Person {name: 'Alice'}), (a:Account {accountNumber: 'A001'})
+CREATE (p)-[:OWNS]->(a)
+
+MATCH (p:Person {name: 'Bob'}), (a:Account {accountNumber: 'A002'})
+CREATE (p)-[:OWNS]->(a)
+
+MATCH (p:Person {name: 'Charlie'}), (a:Account {accountNumber: 'A003'})
+CREATE (p)-[:OWNS]->(a);
